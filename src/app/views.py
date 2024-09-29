@@ -127,7 +127,6 @@ def show_view_v1():
         has_results = True
         print(f"Advisor {row.aid1} advised {row.aid2} with weight {row.weight}. Relationship: {row.relationship}")
 
-    # If no results were found, print a message
     if not has_results:
         print("No results found in V1.")
 
