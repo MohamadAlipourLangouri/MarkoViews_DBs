@@ -26,7 +26,7 @@ Ensure these tools are installed on your system before proceeding.
 
 3. **Database Setup:**
     - Create a new PostgreSQL database.
-    - Configure the database connection in the `config.py` file by providing the correct database credentials (e.g., database name, user, password, host, and port).
+    - Configure the database connection in the `config.py` file by providing the correct database credentials (user, password, database name).
 
 4. **Run the project:**
     Execute the main Python script to start the application:
