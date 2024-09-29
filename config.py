@@ -1,1 +1,1 @@
-DATABASE_URL = "postgresql://postgres:Mohammad66697678@localhost/MarkoViews_Databases"
+DATABASE_URL = "postgresql://postgres:UserName@Password/DB_Name"
