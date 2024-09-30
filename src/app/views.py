@@ -1,5 +1,6 @@
 from sqlalchemy import text, Table, Column, Integer, Float, MetaData, engine, String
-from app.models import session, engine
+from config import session, engine
+
 
 # MarkoView V1: Advisor and Student co-authorship
 def create_view_v1():
@@ -157,8 +158,9 @@ def show_view_v3():
     except Exception as e:
         print(f"An error occurred while querying V3: {e}")
 
+# ----------------------------------- Views created --------------------
 
-# Step 1: Define NV tables for each view
+# Defining NV classes to strore the results of the MarkoViews transformation
 def create_nv_tables():
     metadata = MetaData()
 
@@ -168,7 +170,7 @@ def create_nv_tables():
         Column('aid1', Integer, primary_key=True),
         Column('aid2', Integer, primary_key=True),
         Column('weight', Float),
-        Column('w_0', Float)
+        Column('w_0', Float)  # Transformed weight
     )
 
     # Define NV2 table (based on V2)
@@ -178,7 +180,7 @@ def create_nv_tables():
         Column('aid2', Integer, primary_key=True),
         Column('aid3', Integer, primary_key=True),
         Column('weight', Float),
-        Column('w_0', Float)
+        Column('w_0', Float)  # Transformed weight
     )
 
     # Define NV3 table (based on V3)
@@ -186,106 +188,213 @@ def create_nv_tables():
         'nv3', metadata,
         Column('aid1', Integer, primary_key=True),
         Column('aid2', Integer, primary_key=True),
-        Column('inst', String),  # Corrected to use String instead of string
+        Column('inst', String),
         Column('weight', Float),
-        Column('w_0', Float)
+        Column('w_0', Float)  # Transformed weight
     )
 
     # Create all tables in the database
     metadata.create_all(engine)
 
-# Step 2: Populate NV tables based on the views
+# --------------------- populate the NV tables
 def populate_nv_tables():
     # Populate NV1 based on V1
     v1_tuples = session.execute(text("SELECT aid1, aid2, weight FROM V1"))
     for row in v1_tuples:
-        # Check if the tuple already exists in nv1
-        existing = session.execute(
-            text("SELECT aid1, aid2 FROM nv1 WHERE aid1 = :aid1 AND aid2 = :aid2"),
-            {"aid1": row.aid1, "aid2": row.aid2}
-        ).fetchone()
+        # Transform the weight using the function refined earlier
+        transformed_weight = transform_weight(row.weight, is_markoview_tuple=True)
+        if transformed_weight is not None:
+            # Check if the tuple already exists in nv1
+            existing = session.execute(
+                text("SELECT aid1, aid2 FROM nv1 WHERE aid1 = :aid1 AND aid2 = :aid2"),
+                {"aid1": row.aid1, "aid2": row.aid2}
+            ).fetchone()
 
-        if existing is None:
-            session.execute(
-                text("INSERT INTO nv1 (aid1, aid2, weight) VALUES (:aid1, :aid2, :weight)"),
-                {"aid1": row.aid1, "aid2": row.aid2, "weight": row.weight}
-            )
-        else:
-            print(f"Skipping duplicate entry for aid1={row.aid1}, aid2={row.aid2} in nv1")
+            if existing is None:
+                session.execute(
+                    text("INSERT INTO nv1 (aid1, aid2, weight, w_0) VALUES (:aid1, :aid2, :weight, :w_0)"),
+                    {"aid1": row.aid1, "aid2": row.aid2, "weight": row.weight, "w_0": transformed_weight}
+                )
+            else:
+                print(f"Skipping duplicate entry for aid1={row.aid1}, aid2={row.aid2} in nv1")
 
-    # Populate NV2 based on V2
+    # Repeat similar steps for NV2 and NV3 tables
+    # NV2
     v2_tuples = session.execute(text("SELECT aid1, aid2, aid3, weight FROM V2"))
     for row in v2_tuples:
-        # Check if the tuple already exists in nv2
-        existing = session.execute(
-            text("SELECT aid1, aid2, aid3 FROM nv2 WHERE aid1 = :aid1 AND aid2 = :aid2 AND aid3 = :aid3"),
-            {"aid1": row.aid1, "aid2": row.aid2, "aid3": row.aid3}
-        ).fetchone()
+        transformed_weight = transform_weight(row.weight, is_markoview_tuple=True)
+        if transformed_weight is not None:
+            existing = session.execute(
+                text("SELECT aid1, aid2, aid3 FROM nv2 WHERE aid1 = :aid1 AND aid2 = :aid2 AND aid3 = :aid3"),
+                {"aid1": row.aid1, "aid2": row.aid2, "aid3": row.aid3}
+            ).fetchone()
 
-        if existing is None:
-            session.execute(
-                text("INSERT INTO nv2 (aid1, aid2, aid3, weight) VALUES (:aid1, :aid2, :aid3, :weight)"),
-                {"aid1": row.aid1, "aid2": row.aid2, "aid3": row.aid3, "weight": row.weight}
-            )
-        else:
-            print(f"Skipping duplicate entry for aid1={row.aid1}, aid2={row.aid2}, aid3={row.aid3} in nv2")
+            if existing is None:
+                session.execute(
+                    text("INSERT INTO nv2 (aid1, aid2, aid3, weight, w_0) VALUES (:aid1, :aid2, :aid3, :weight, :w_0)"),
+                    {"aid1": row.aid1, "aid2": row.aid2, "aid3": row.aid3, "weight": row.weight, "w_0": transformed_weight}
+                )
+            else:
+                print(f"Skipping duplicate entry for aid1={row.aid1}, aid2={row.aid2}, aid3={row.aid3} in nv2")
 
-    # Populate NV3 based on V3
+    # NV3
     v3_tuples = session.execute(text("SELECT aid1, aid2, inst, weight FROM V3"))
     for row in v3_tuples:
-        # Check if the tuple already exists in nv3
-        existing = session.execute(
-            text("SELECT aid1, aid2, inst FROM nv3 WHERE aid1 = :aid1 AND aid2 = :aid2 AND inst = :inst"),
-            {"aid1": row.aid1, "aid2": row.aid2, "inst": row.inst}
-        ).fetchone()
+        transformed_weight = transform_weight(row.weight, is_markoview_tuple=True)
+        if transformed_weight is not None:
+            existing = session.execute(
+                text("SELECT aid1, aid2, inst FROM nv3 WHERE aid1 = :aid1 AND aid2 = :aid2 AND inst = :inst"),
+                {"aid1": row.aid1, "aid2": row.aid2, "inst": row.inst}
+            ).fetchone()
 
-        if existing is None:
-            session.execute(
-                text("INSERT INTO nv3 (aid1, aid2, inst, weight) VALUES (:aid1, :aid2, :inst, :weight)"),
-                {"aid1": row.aid1, "aid2": row.aid2, "inst": row.inst, "weight": row.weight}
-            )
-        else:
-            print(f"Skipping duplicate entry for aid1={row.aid1}, aid2={row.aid2}, inst={row.inst} in nv3")
+            if existing is None:
+                session.execute(
+                    text("INSERT INTO nv3 (aid1, aid2, inst, weight, w_0) VALUES (:aid1, :aid2, :inst, :weight, :w_0)"),
+                    {"aid1": row.aid1, "aid2": row.aid2, "inst": row.inst, "weight": row.weight, "w_0": transformed_weight}
+                )
+            else:
+                print(f"Skipping duplicate entry for aid1={row.aid1}, aid2={row.aid2}, inst={row.inst} in nv3")
 
     session.commit()
     print("NV tables populated successfully.")
 
-# Run this to create NV tables and populate them
-create_nv_tables()
-populate_nv_tables()
 
+#-----------------------------------------
+
+
+def compute_probability(expression, aid1=None, aid2=None, aid3=None):
+    total_prob = 0.0
+
+    if expression == "union_nv_tables":
+        # Union of all tuples across nv1, nv2, and nv3 (represents W)
+        nv1_prob = session.execute(text("SELECT SUM(w_0) FROM nv1")).scalar() or 0
+        nv2_prob = session.execute(text("SELECT SUM(w_0) FROM nv2")).scalar() or 0
+        nv3_prob = session.execute(text("SELECT SUM(w_0) FROM nv3")).scalar() or 0
+
+        total_prob = nv1_prob + nv2_prob + nv3_prob - (nv1_prob * nv2_prob) - (nv1_prob * nv3_prob) - (nv2_prob * nv3_prob) + (nv1_prob * nv2_prob * nv3_prob)
+
+    elif expression == "v1_coauthorship":
+        # Example: Probability of a specific advisor-student co-authorship in V1
+        total_prob = session.execute(
+            text("SELECT SUM(w_0) FROM nv1 WHERE aid1 = :aid1 AND aid2 = :aid2"),
+            {'aid1': aid1, 'aid2': aid2}
+        ).scalar() or 0
+
+    elif expression == "v2_advisor_violation":
+        # Example: Probability of an advisor violation in V2
+        total_prob = session.execute(
+            text("SELECT SUM(w_0) FROM nv2 WHERE aid1 = :aid1 AND aid2 = :aid2 AND aid3 = :aid3"),
+            {'aid1': aid1, 'aid2': aid2, 'aid3': aid3}
+        ).scalar() or 0
+
+    elif expression == "v3_shared_affiliation":
+        # Example: Probability of shared affiliation for frequent co-authors in V3
+        total_prob = session.execute(
+            text("SELECT SUM(w_0) FROM nv3 WHERE aid1 = :aid1 AND aid2 = :aid2"),
+            {'aid1': aid1, 'aid2': aid2}
+        ).scalar() or 0
+
+    return min(total_prob, 1)  # Ensure probability does not exceed 1
+
+#------------------------------------
+
+
+def transform_weight(weight, is_markoview_tuple=True):
+    """
+    Transform the weight based on whether the tuple is in the MarkoView (Tup_V) or the original database (Tup).
+
+    :param weight: The original weight of the tuple.
+    :param is_markoview_tuple: Boolean indicating if the tuple belongs to a MarkoView (Tup_V).
+    :return: The transformed weight w_0 or None if invalid input.
+    """
+    try:
+        if is_markoview_tuple:
+            # Handle edge cases based on the paper's discussion:
+            if weight == 0:
+                # Represents a hard constraint (impossible event)
+                return float('inf')  # or a large value, depending on how you want to represent it in the DB
+            elif weight == 1:
+                # Represents a certainty, hence transformed weight should be infinite (or a very large number)
+                return float('inf')
+
+            # Normal transformation for 0 < weight < 1
+            transformed_weight = (1 - weight) / weight
+            return transformed_weight
+        else:
+            # If it's a tuple from the original database (Tup), use the original weight
+            return weight
+
+    except Exception as e:
+        print(f"Error in transforming weight: {e}")
+        return None
+    transformed_weight = transform_weight(row.weight, is_markoview_tuple=True)
+    if transformed_weight is not None:
+        # Handle database-specific representation for 'infinity'
+        if transformed_weight == float('inf'):
+            session.execute(
+                text(f"UPDATE nv1 SET w_0 = :w_0 WHERE aid1 = :aid1 AND aid2 = :aid2"),
+                {'w_0': None, 'aid1': row.aid1, 'aid2': row.aid2}  # or some large number if 'None' is not feasible
+            )
+        else:
+            session.execute(
+                text(f"UPDATE nv1 SET w_0 = :w_0 WHERE aid1 = :aid1 AND aid2 = :aid2"),
+                {'w_0': transformed_weight, 'aid1': row.aid1, 'aid2': row.aid2}
+            )
+
+
+#-------------------------------------------
 
 def transform_mvdb_to_indb():
-    # Transform NV1 tuples
-    nv1_tuples = session.execute(text("SELECT aid1, aid2, weight FROM nv1"))
+    # Run this to create NV tables and populate them
+    create_nv_tables()
+    populate_nv_tables()
+
+    # Step 1: Generate the NV tables based on MarkoViews (assuming this is already done)
+    nv1_tuples = session.execute(text("SELECT * FROM nv1")).fetchall()
+    nv2_tuples = session.execute(text("SELECT * FROM nv2")).fetchall()
+    nv3_tuples = session.execute(text("SELECT * FROM nv3")).fetchall()
+
+    # Step 2: Apply the transformation to weights for tuples in the MarkoViews
+    # Update NV1
     for row in nv1_tuples:
-        # Apply the transformation logic
-        transformed_weight = (1 - row.weight) / row.weight
-        session.execute(
-            text("UPDATE nv1 SET w_0 = :w_0 WHERE aid1 = :aid1 AND aid2 = :aid2"),
-            {"aid1": row.aid1, "aid2": row.aid2, "w_0": transformed_weight}
-        )
+        transformed_weight = transform_weight(row.weight, is_markoview_tuple=True)  # MarkoView tuple
+        if transformed_weight is not None:
+            session.execute(
+                text(f"UPDATE nv1 SET w_0 = :w_0 WHERE aid1 = :aid1 AND aid2 = :aid2"),
+                {'w_0': transformed_weight, 'aid1': row.aid1, 'aid2': row.aid2}
+            )
 
-    # Transform NV2 tuples
-    nv2_tuples = session.execute(text("SELECT aid1, aid2, aid3, weight FROM nv2"))
+    # Update NV2
     for row in nv2_tuples:
-        # Apply the transformation logic
-        transformed_weight = (1 - row.weight) / row.weight
-        session.execute(
-            text("UPDATE nv2 SET w_0 = :w_0 WHERE aid1 = :aid1 AND aid2 = :aid2 AND aid3 = :aid3"),
-            {"aid1": row.aid1, "aid2": row.aid2, "aid3": row.aid3, "w_0": transformed_weight}
-        )
+        transformed_weight = transform_weight(row.weight, is_markoview_tuple=True)  # MarkoView tuple
+        if transformed_weight is not None:
+            session.execute(
+                text(f"UPDATE nv2 SET w_0 = :w_0 WHERE aid1 = :aid1 AND aid2 = :aid2"),
+                {'w_0': transformed_weight, 'aid1': row.aid1, 'aid2': row.aid2}
+            )
 
-    # Transform NV3 tuples
-    nv3_tuples = session.execute(text("SELECT aid1, aid2, inst, weight FROM nv3"))
+    # Update NV3
     for row in nv3_tuples:
-        # Apply the transformation logic
-        transformed_weight = (1 - row.weight) / row.weight
-        session.execute(
-            text("UPDATE nv3 SET w_0 = :w_0 WHERE aid1 = :aid1 AND aid2 = :aid2 AND inst = :inst"),
-            {"aid1": row.aid1, "aid2": row.aid2, "inst": row.inst, "w_0": transformed_weight}
-        )
+        transformed_weight = transform_weight(row.weight, is_markoview_tuple=True)  # MarkoView tuple
+        if transformed_weight is not None:
+            session.execute(
+                text(f"UPDATE nv3 SET w_0 = :w_0 WHERE aid1 = :aid1 AND aid2 = :aid2"),
+                {'w_0': transformed_weight, 'aid1': row.aid1, 'aid2': row.aid2}
+            )
+
+    # Step 3: Calculate query probabilities (P0(Q ∨ W) - P0(W)) / (1 - P0(W))
+    p_0_q_or_w = compute_probability("v1_coauthorship", aid1=1, aid2=2)  # Example query using V1
+    p_0_w = compute_probability("union_nv_tables")  # Represents W as the union of all MarkoViews
+
+    print(f"P_0(Q ∨ W): {p_0_q_or_w}, P_0(W): {p_0_w}")
+
+    # Calculate the final probability using the formula
+    if p_0_w != 1:  # Prevent division by zero
+        final_probability = (p_0_q_or_w - p_0_w) / (1 - p_0_w)
+    else:
+        final_probability = 0  # Handle edge case if P0(W) is 1
+
+    print(f"Final Probability: {final_probability}")
 
     session.commit()
     print("Transformation to INDB complete.")
-

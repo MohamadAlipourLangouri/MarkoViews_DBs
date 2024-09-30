@@ -41,6 +41,8 @@ def populate_data():
             Wrote(aid=3, pid=105),
             Wrote(aid=1, pid=106),
             Wrote(aid=2, pid=106),
+            Wrote(aid=1, pid=107),
+            Wrote(aid=2, pid=107),
 
             # Students
             Studentp(aid=1, year=2005, probability=0.8),
@@ -64,7 +66,8 @@ def populate_data():
             Pub(pid=103, year=2007),
             Pub(pid=104, year=2008),
             Pub(pid=105, year=2022),
-            Pub(pid=106, year=2005)
+            Pub(pid=106, year=2005),
+            Pub(pid=107, year=2005)
         ])
         session.commit()
         print("Sample data added successfully.")
@@ -87,3 +90,5 @@ show_view_v3()
 
 # Transform the MVDB into the INDB
 transform_mvdb_to_indb()
+
+

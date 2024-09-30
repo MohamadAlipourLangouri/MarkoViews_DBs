@@ -1,3 +1,5 @@
+
+from app.views import transform_weight
 from sqlalchemy import create_engine, Column, Integer, String, Float, Table, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -53,19 +55,6 @@ class Pub(Base):
     year = Column(Integer)
 
 
-#----------------------------------------------
-# Defining NV classes to strore the results of the MarkoViews transformation
-def create_nv_table(table_name):
-    metadata = MetaData()
-    nv_table = Table(
-        table_name, metadata,
-        Column('aid1', Integer, primary_key=True),
-        Column('aid2', Integer, primary_key=True),
-        Column('weight', Float),  # Original probability (from views)
-        Column('w_0', Float)      # Transformed weight (from MarkoViews)
-    )
-    metadata.create_all(engine)
-    return nv_table
 
 #------------------------------------------------
 # Create all tables in the database
@@ -77,9 +66,9 @@ def drop_tables():
     Base.metadata.drop_all(engine)
 
 
-
- # adding the DBLP dataset (dataset used in the paper)
- # File paths
+#----------- Future works --------------------------
+# adding the DBLP dataset (dataset used in the paper)
+# File paths
 # dblp_file_path = r'C:\dblp.xml'
 # modified_file_path = r'C:\dblp.xml'
 #
