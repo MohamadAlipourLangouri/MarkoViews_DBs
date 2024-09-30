@@ -2,7 +2,7 @@
 
 from sqlalchemy import text, Table, Column, Integer, Float, MetaData
 from app.models import create_tables, session, Author, Wrote, Studentp, Advisorp, Affiliation, Pub
-from app.views import create_view_v1, create_view_v2,create_view_v3, enforce_constraint_v2, show_view_v1, show_view_v2,show_view_v3, transform_mvdb_to_indb
+from app.views import create_view_v1, create_view_v2,create_view_v3, enforce_constraint_v2, show_view_v1, show_view_v3, transform_mvdb_to_indb,create_nv_tables,populate_nv_tables
 
 
 # Create all tables
@@ -73,6 +73,7 @@ def populate_data():
         print(f"An error occurred while adding sample data: {e}")
 
 populate_data()
+# Run this to create NV tables and populate them
 
 #---------------
 # generating results
@@ -80,6 +81,8 @@ create_view_v1()
 create_view_v2()
 create_view_v3()
 
+create_nv_tables()
+populate_nv_tables()
 # Show MarkoView outputs
 show_view_v1()
 enforce_constraint_v2()

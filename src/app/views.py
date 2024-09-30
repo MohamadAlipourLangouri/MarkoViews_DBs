@@ -251,9 +251,7 @@ def populate_nv_tables():
     session.commit()
     print("NV tables populated successfully.")
 
-# Run this to create NV tables and populate them
-create_nv_tables()
-populate_nv_tables()
+
 
 
 def transform_mvdb_to_indb():
