@@ -128,11 +128,11 @@ def create_view_v3():
             a1.aid AS aid1,
             a2.aid AS aid2,
             a1.inst AS inst,
-            COUNT(DISTINCT p.pid) / 5 AS publication_score
+            COUNT(DISTINCT p.pid) / 5.0 AS weight
         FROM 
             Affiliation a1
         JOIN 
-            Affiliation a2 ON a1.inst = a2.inst
+            Affiliation a2 ON a1.inst = a2.inst AND a1.aid <> a2.aid
         JOIN 
             Wrote w1 ON a1.aid = w1.aid
         JOIN 
@@ -141,7 +141,7 @@ def create_view_v3():
             Pub p ON p.pid = w1.pid
         WHERE 
             p.year > 2004
-            AND a1.aid <> a2.aid  -- Exclude self-pairing
+            --AND a1.aid <> a2.aid  -- Exclude self-pairing
         GROUP BY 
             a1.aid, a2.aid, a1.inst
         HAVING 
