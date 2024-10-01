@@ -77,7 +77,7 @@ def populate_data():
         print(f"An error occurred while adding sample data: {e}")
 
 populate_data()
-# Run this to create NV tables and populate them
+# Run This to create NV tables and populate them
 
 #---------------
 # generating results

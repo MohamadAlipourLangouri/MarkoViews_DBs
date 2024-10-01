@@ -243,7 +243,7 @@ def create_nv_tables():
         Column('w_0', Float)
     )
 
-    # Define NV2 table (based on V2)
+    # Define NV2 Table (based on V2)
     nv2 = Table(
         'nv2', metadata,
         Column('aid1', Integer, primary_key=True),
