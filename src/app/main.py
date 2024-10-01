@@ -106,5 +106,3 @@ print(f"the Prob of P0_W is: {Probability_P0_W}")
 
 probability2 = m_compute_PQ(session, query_condition)
 print(f"The probability of the query for m_PQ is: {probability2}")
-
-
