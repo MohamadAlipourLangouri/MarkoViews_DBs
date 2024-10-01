@@ -2,7 +2,11 @@
 
 from sqlalchemy import text, Table, Column, Integer, Float, MetaData
 from app.models import create_tables, session, Author, Wrote, Studentp, Advisorp, Affiliation, Pub
-from app.views import create_view_v1, create_view_v2,create_view_v3, enforce_constraint_v2, show_view_v1, show_view_v3, transform_mvdb_to_indb,create_nv_tables,populate_nv_tables
+from app.views import create_view_v1, create_view_v2, enforce_constraint_v2, show_view_v1, show_view_v3, \
+    transform_mvdb_to_indb, create_nv_tables, populate_nv_tables, compute_PQ, m_compute_PQ, compute_P0_Q_or_W, \
+    compute_P0_W, create_view_v3
+
+import math
 
 
 # Create all tables
@@ -59,12 +63,12 @@ def populate_data():
             Affiliation(aid=4, inst='University B'),
 
             # Publications
-            Pub(pid=101, year=2005),
+            Pub(pid=101, year=2006),
             Pub(pid=102, year=2006),
             Pub(pid=103, year=2007),
             Pub(pid=104, year=2008),
             Pub(pid=105, year=2022),
-            Pub(pid=106, year=2005)
+            Pub(pid=106, year=2006)
         ])
         session.commit()
         print("Sample data added successfully.")
@@ -90,3 +94,17 @@ show_view_v3()
 
 # Transform the MVDB into the INDB
 transform_mvdb_to_indb()
+#Compute the arbitrary Query condition
+query_condition = "aid1 = 1 AND aid2 = 2"  # Example condition
+probability = compute_PQ(session, query_condition)
+probability_Q_OR_W = compute_P0_Q_or_W(session,query_condition)
+Probability_P0_W = compute_P0_W(session)
+print(f"The probability of the query is: {probability}")
+print(f"the Prob of P0_Q_or_W is{probability_Q_OR_W}")
+print(f"the Prob of P0_W is: {Probability_P0_W}")
+
+
+probability2 = m_compute_PQ(session, query_condition)
+print(f"The probability of the query for m_PQ is: {probability2}")
+
+
